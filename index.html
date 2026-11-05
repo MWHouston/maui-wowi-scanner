@@ -1,23 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Maui Wowi Scanner</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f3f6f4; margin: 0; padding: 24px; text-align: center; }
-    .card { max-width: 480px; margin: 40px auto; padding: 28px; background: white; border-radius: 18px; border: 1px solid #dbe5de; }
-    h1 { color: #174b3d; }
-    button { background: #174b3d; color: white; border: none; border-radius: 12px; padding: 16px; font-size: 17px; width: 100%; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maui Wowi QR Scanner</title>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+body{font-family:Arial,sans-serif;background:#f3f6f4;margin:0;padding:20px;text-align:center}
+.card{max-width:480px;margin:25px auto;background:white;padding:24px;border-radius:18px}
+h1{color:#174b3d}
+button{display:block;width:100%;padding:16px;margin:12px 0;border:0;border-radius:10px;background:#174b3d;color:white;font-size:17px}
+button.secondary{background:#666}
+#reader{width:100%;overflow:hidden}
+#status{padding:12px;background:#eef3ef;border-radius:10px;overflow-wrap:anywhere}
+</style>
 </head>
 <body>
-  <div class="card">
-    <h1>MAUI WOWI</h1>
-    <h2>Employee QR Scanner</h2>
-    <p>Standalone iPhone scanner setup</p>
-    <button type="button" onclick="document.getElementById('status').textContent='Webpage is working!'">Test webpage</button>
-    <p id="status">Ready for setup</p>
-  </div>
+<div class="card">
+<h1>MAUI WOWI</h1>
+<h2>Employee QR Scanner</h2>
+<p>Camera test only — no employee data is sent.</p>
+<div id="reader"></div>
+<button onclick="startScanner()">Start Camera</button>
+<button class="secondary" onclick="stopScanner()">Stop Camera</button>
+<p id="status">Ready to test camera.</p>
+</div>
+<script>
+let scanner=null;
+let running=false;
+function status(message){document.getElementById('status').textContent=message}
+async function startScanner(){
+ if(running)return;
+ if(typeof Html5Qrcode==='undefined'){status('QR scanner library failed to load.');return}
+ try{
+  scanner=new Html5Qrcode('reader');
+  await scanner.start(
+   {facingMode:'environment'},
+   {fps:10,qrbox:{width:220,height:220}},
+   function(decodedText){
+    status('QR code detected successfully. Contents hidden for security.');
+   },
+   function(){}
+  );
+  running=true;
+  status('Camera active. Point at a test QR code.');
+ }catch(e){
+  status('Camera error: '+String(e?.message||e?.name||e));
+ }
+}
+async function stopScanner(){
+ if(!scanner||!running)return;
+ try{
+  await scanner.stop();
+  scanner.clear();
+  running=false;
+  scanner=null;
+  status('Camera stopped.');
+ }catch(e){status('Stop error: '+String(e?.message||e?.name||e))}
+}
+</script>
 </body>
 </html>
